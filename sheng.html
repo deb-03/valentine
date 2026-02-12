@@ -721,10 +721,54 @@
     </div>
 
     <!-- Audio for letter section -->
-    <audio id="valentineAudio" src="valentine.mp3" preload="auto"></audio>
+    <audio id="valentineAudio" src="valentine.mp3" preload="auto" playsinline crossorigin="anonymous"></audio>
+
+    <!-- Fallback play button shown when autoplay is blocked -->
+    <button id="audioPlayBtn" style="display:none; position: fixed; bottom: 24px; right: 24px; background:#b30000; color:#fff; border:none; padding:10px 14px; border-radius:8px; box-shadow:0 6px 16px rgba(0,0,0,0.15); cursor:pointer; z-index:9999;">Play music</button>
 
     <script>
         // --- JAVASCRIPT LOGIC ---
+
+        // Attempt to "unlock" audio on the first user gesture so later programmatic
+        // plays are allowed by autoplay policies. If the attempt fails, show
+        // the fallback play button so the user can manually start the audio.
+        (function setupAudioUnlock(){
+            const audio = document.getElementById('valentineAudio');
+            const playBtn = document.getElementById('audioPlayBtn');
+
+            if (!audio || !playBtn) return;
+
+            function showFallback() {
+                playBtn.style.display = 'inline-block';
+            }
+
+            function tryPlayOnce() {
+                audio.play().then(() => {
+                    // We played successfully, pause again and reset so later plays start from 0
+                    audio.pause();
+                    audio.currentTime = 0;
+                    // remove listeners (we used {once:true} below so not strictly necessary)
+                }).catch(() => {
+                    // Autoplay blocked — show the play button so the user can start audio.
+                    showFallback();
+                });
+            }
+
+            // Try to unlock on a first click or keydown (user gesture).
+            document.addEventListener('click', tryPlayOnce, { once: true, capture: true });
+            document.addEventListener('keydown', tryPlayOnce, { once: true, capture: true });
+
+            // Wire the fallback button to play the audio when clicked.
+            playBtn.addEventListener('click', () => {
+                audio.currentTime = 0;
+                audio.play().then(() => {
+                    playBtn.style.display = 'none';
+                }).catch(() => {
+                    // keep the button visible if still blocked
+                    playBtn.style.display = 'inline-block';
+                });
+            });
+        })();
 
         function openEnvelope() {
             const envelope = document.getElementById('envelope');
