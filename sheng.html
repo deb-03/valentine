@@ -735,6 +735,7 @@
         (function setupAudioUnlock(){
             const audio = document.getElementById('valentineAudio');
             const playBtn = document.getElementById('audioPlayBtn');
+            let audioUnlocked = false;
 
             if (!audio || !playBtn) return;
 
@@ -744,10 +745,9 @@
 
             function tryPlayOnce() {
                 audio.play().then(() => {
-                    // We played successfully, pause again and reset so later plays start from 0
+                    audioUnlocked = true;
                     audio.pause();
                     audio.currentTime = 0;
-                    // remove listeners (we used {once:true} below so not strictly necessary)
                 }).catch(() => {
                     // Autoplay blocked — show the play button so the user can start audio.
                     showFallback();
@@ -762,11 +762,22 @@
             playBtn.addEventListener('click', () => {
                 audio.currentTime = 0;
                 audio.play().then(() => {
+                    audioUnlocked = true;
                     playBtn.style.display = 'none';
                 }).catch(() => {
-                    // keep the button visible if still blocked
                     playBtn.style.display = 'inline-block';
                 });
+            });
+
+            // Expose helper for navigation to decide whether to show fallback
+            window.__valentineAudioState = {
+                get unlocked() { return audioUnlocked; },
+                showFallback
+            };
+
+            // Log audio load/play errors for easier debugging after deployment
+            audio.addEventListener('error', (e) => {
+                console.error('Valentine audio failed to load/play', e);
             });
         })();
 
@@ -813,7 +824,15 @@
                 if (pageId === 'section-letter') {
                     valentineAudio.currentTime = 0;
                     // Attempt to play (may require user gesture in some browsers)
-                    valentineAudio.play().catch(() => {});
+                    valentineAudio.play().then(()=>{
+                        // played
+                    }).catch((err)=>{
+                        // If autoplay blocked, show the fallback play button so user can start audio
+                        if (window.__valentineAudioState && typeof window.__valentineAudioState.showFallback === 'function') {
+                            window.__valentineAudioState.showFallback();
+                        }
+                        console.warn('Autoplay blocked or play failed:', err);
+                    });
                 } else {
                     valentineAudio.pause();
                     valentineAudio.currentTime = 0;
