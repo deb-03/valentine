@@ -311,6 +311,7 @@
             height: 80px;
             object-fit: cover;
             opacity: 0.9;
+            transform-origin: center center;
         }
 
         .flower-left {
@@ -335,6 +336,17 @@
             bottom: -50px;
             left: 50%;
             transform: translateX(-50%);
+        }
+
+        /* click animation: spin once while growing, then return to normal */
+        @keyframes spinGrow {
+            0% { transform: translateY(-50%) rotate(0deg) scale(1); }
+            50% { transform: translateY(-50%) rotate(360deg) scale(1.4); }
+            100% { transform: translateY(-50%) rotate(360deg) scale(1); }
+        }
+
+        .flower-animate {
+            animation: spinGrow 2s ease-in-out forwards;
         }
 
         @keyframes fadeIn {
@@ -621,7 +633,7 @@
         <div id="section-cards" class="page">
             <button class="close-btn" onclick="resetToEnvelope()">✕</button>
             <h1 class="header-title">Surprise gifts for you</h1>
-            <p class="sub-text">I hope this brings a smile to your face and reminds you of how much you mean to me.</p>
+            <p class="sub-text">I hope this brings a smile to your face and reminds you of how much you mean to me. Just like these 3 gerberas.</p>
             
             <div class="card-selection">
                 <div class="card-item" onclick="goToPage('section-pictures')">
@@ -650,10 +662,10 @@
 
         <div id="section-pictures" class="page">
             <img class="flower-decoration flower-top" src="w.png" alt="Flower decoration">
-            <img class="flower-decoration flower-left" src="w.png" alt="Flower decoration">
-            <img class="flower-decoration flower-right" src="w.png" alt="Flower decoration">
+            <img class="flower-decoration flower-left" src="r.png" alt="Flower decoration">
+            <img class="flower-decoration flower-right" src="q.png" alt="Flower decoration">
             <h1 class="header-title">Favorite Pictures</h1>
-            <p class="sub-text">These are the photos that you send it to me and became my favorite I know that theres more photos that you send to me but these are the ones that I like the most,
+            <p class="sub-text">These are the photos that you send it to me and became my favorite I know that theres more photos that you send it to me but these are the ones that I like the most,
                   I am really thankful that you send these photos to me, it really make my heart melt looking at these beautiful photos of yours, I will keep this forever.</p>
 
             <div class="collage-container">
@@ -672,9 +684,9 @@
         </div>
 
         <div id="section-message" class="page">
-            <img class="flower-decoration flower-top" src="r.png" alt="Flower decoration">
+            <img class="flower-decoration flower-top" src="w.png" alt="Flower decoration">
             <img class="flower-decoration flower-left" src="r.png" alt="Flower decoration">
-            <img class="flower-decoration flower-right" src="r.png" alt="Flower decoration">
+            <img class="flower-decoration flower-right" src="q.png" alt="Flower decoration">
             <h1 class="header-title"> I Dedicate this song to you</h1>
             <p class="sub-text">The song i think of when i think of you</p>
             
@@ -691,11 +703,11 @@
         </div>
 
         <div id="section-letter" class="page">
-            <img class="flower-decoration flower-top" src="q.png" alt="Flower decoration">
-            <img class="flower-decoration flower-left" src="q.png" alt="Flower decoration">
+            <img class="flower-decoration flower-top" src="w.png" alt="Flower decoration">
+            <img class="flower-decoration flower-left" src="r.png" alt="Flower decoration">
             <img class="flower-decoration flower-right" src="q.png" alt="Flower decoration">
             <h1 class="header-title">A Letter for You</h1>
-            
+            <p class="sub-text">click the yellow gerbera before reading it.</p>
             <div class="letter-container">
                 <p>My Valentine,</p>
                 
@@ -721,65 +733,10 @@
     </div>
 
     <!-- Audio for letter section -->
-    <audio id="valentineAudio" src="valentine.mp3" preload="auto" playsinline crossorigin="anonymous"></audio>
-
-    <!-- Fallback play button shown when autoplay is blocked -->
-    <button id="audioPlayBtn" style="display:none; position: fixed; bottom: 24px; right: 24px; background:#b30000; color:#fff; border:none; padding:10px 14px; border-radius:8px; box-shadow:0 6px 16px rgba(0,0,0,0.15); cursor:pointer; z-index:9999;">Play music</button>
+    <audio id="valentineAudio" src="valentine.mp3" preload="auto"></audio>
 
     <script>
         // --- JAVASCRIPT LOGIC ---
-
-        // Attempt to "unlock" audio on the first user gesture so later programmatic
-        // plays are allowed by autoplay policies. If the attempt fails, show
-        // the fallback play button so the user can manually start the audio.
-        (function setupAudioUnlock(){
-            const audio = document.getElementById('valentineAudio');
-            const playBtn = document.getElementById('audioPlayBtn');
-            let audioUnlocked = false;
-
-            if (!audio || !playBtn) return;
-
-            function showFallback() {
-                playBtn.style.display = 'inline-block';
-            }
-
-            function tryPlayOnce() {
-                audio.play().then(() => {
-                    audioUnlocked = true;
-                    audio.pause();
-                    audio.currentTime = 0;
-                }).catch(() => {
-                    // Autoplay blocked — show the play button so the user can start audio.
-                    showFallback();
-                });
-            }
-
-            // Try to unlock on a first click or keydown (user gesture).
-            document.addEventListener('click', tryPlayOnce, { once: true, capture: true });
-            document.addEventListener('keydown', tryPlayOnce, { once: true, capture: true });
-
-            // Wire the fallback button to play the audio when clicked.
-            playBtn.addEventListener('click', () => {
-                audio.currentTime = 0;
-                audio.play().then(() => {
-                    audioUnlocked = true;
-                    playBtn.style.display = 'none';
-                }).catch(() => {
-                    playBtn.style.display = 'inline-block';
-                });
-            });
-
-            // Expose helper for navigation to decide whether to show fallback
-            window.__valentineAudioState = {
-                get unlocked() { return audioUnlocked; },
-                showFallback
-            };
-
-            // Log audio load/play errors for easier debugging after deployment
-            audio.addEventListener('error', (e) => {
-                console.error('Valentine audio failed to load/play', e);
-            });
-        })();
 
         function openEnvelope() {
             const envelope = document.getElementById('envelope');
@@ -822,17 +779,8 @@
             const valentineAudio = document.getElementById('valentineAudio');
             if (valentineAudio) {
                 if (pageId === 'section-letter') {
-                    valentineAudio.currentTime = 0;
-                    // Attempt to play (may require user gesture in some browsers)
-                    valentineAudio.play().then(()=>{
-                        // played
-                    }).catch((err)=>{
-                        // If autoplay blocked, show the fallback play button so user can start audio
-                        if (window.__valentineAudioState && typeof window.__valentineAudioState.showFallback === 'function') {
-                            window.__valentineAudioState.showFallback();
-                        }
-                        console.warn('Autoplay blocked or play failed:', err);
-                    });
+                    // Do not autoplay when opening the letter. Audio should only
+                    // start when the user clicks the right-side flower decoration.
                 } else {
                     valentineAudio.pause();
                     valentineAudio.currentTime = 0;
@@ -859,6 +807,45 @@
                 valentineAudio.currentTime = 0;
             }
         }
+
+        // Play audio and run animation when a right-side flower decoration is clicked.
+        (function wireFlowerRightClicks(){
+            const audio = document.getElementById('valentineAudio');
+            const els = document.querySelectorAll('.flower-decoration.flower-right');
+            if (!els || els.length === 0) return;
+
+            els.forEach(el => {
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', () => {
+                    // Only respond to clicks when the letter section is active
+                    const letterSection = document.getElementById('section-letter');
+                    if (!letterSection || !letterSection.classList.contains('active')) return;
+                    // trigger CSS animation (remove then re-add to restart)
+                    el.classList.remove('flower-animate');
+                    // force reflow to allow restart
+                    void el.offsetWidth;
+                    el.classList.add('flower-animate');
+
+                    // remove class after animation completes so it can be replayed
+                    const onAnimEnd = () => {
+                        el.classList.remove('flower-animate');
+                        el.removeEventListener('animationend', onAnimEnd);
+                    };
+                    el.addEventListener('animationend', onAnimEnd);
+
+                    // play audio (if available)
+                    if (audio) {
+                        try {
+                            audio.muted = false;
+                            audio.currentTime = 0;
+                            audio.play().catch(err => console.warn('Audio play failed:', err));
+                        } catch (e) {
+                            console.warn('Audio play error', e);
+                        }
+                    }
+                });
+            });
+        })();
     </script>
 
     <style>
