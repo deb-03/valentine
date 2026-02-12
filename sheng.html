@@ -733,7 +733,9 @@
     </div>
 
     <!-- Audio for letter section -->
-    <audio id="valentineAudio" src="valentine.mp3" preload="auto"></audio>
+    <audio loop>
+      <source src="Valentine.mp3" type="audio/mp3">
+    </audio>
 
     <script>
         // --- JAVASCRIPT LOGIC ---
@@ -764,6 +766,13 @@
                 }
             }
             
+            // Stop audio when leaving letter section
+            const audio = document.querySelector('audio');
+            if (pageId !== 'section-letter' && audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            
             // Hide all pages except envelope
             document.getElementById('section-envelope').style.display = 'none';
             document.getElementById('section-flowers').classList.remove('active');
@@ -774,21 +783,16 @@
             
             // Show the selected page
             document.getElementById(pageId).classList.add('active');
-            
-            // Play or stop valentine audio depending on page
-            const valentineAudio = document.getElementById('valentineAudio');
-            if (valentineAudio) {
-                if (pageId === 'section-letter') {
-                    // Do not autoplay when opening the letter. Audio should only
-                    // start when the user clicks the right-side flower decoration.
-                } else {
-                    valentineAudio.pause();
-                    valentineAudio.currentTime = 0;
-                }
-            }
         }
 
         function resetToEnvelope() {
+            // Stop audio when going back to envelope
+            const audio = document.querySelector('audio');
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            
             // Hide all pages
             document.getElementById('section-flowers').classList.remove('active');
             document.getElementById('section-cards').classList.remove('active');
@@ -800,17 +804,11 @@
             const envelope = document.getElementById('envelope');
             envelope.classList.remove('open');
             document.getElementById('section-envelope').style.display = 'block';
-            // Ensure letter audio is stopped when returning to envelope
-            const valentineAudio = document.getElementById('valentineAudio');
-            if (valentineAudio) {
-                valentineAudio.pause();
-                valentineAudio.currentTime = 0;
-            }
         }
 
-        // Play audio and run animation when a right-side flower decoration is clicked.
+        // Play animation and audio when a right-side flower decoration is clicked.
         (function wireFlowerRightClicks(){
-            const audio = document.getElementById('valentineAudio');
+            const audio = document.querySelector('audio');
             const els = document.querySelectorAll('.flower-decoration.flower-right');
             if (!els || els.length === 0) return;
 
@@ -820,6 +818,12 @@
                     // Only respond to clicks when the letter section is active
                     const letterSection = document.getElementById('section-letter');
                     if (!letterSection || !letterSection.classList.contains('active')) return;
+                    
+                    // Play audio
+                    if (audio) {
+                        audio.play().catch(err => console.log('Audio play:', err));
+                    }
+                    
                     // trigger CSS animation (remove then re-add to restart)
                     el.classList.remove('flower-animate');
                     // force reflow to allow restart
@@ -832,17 +836,6 @@
                         el.removeEventListener('animationend', onAnimEnd);
                     };
                     el.addEventListener('animationend', onAnimEnd);
-
-                    // play audio (if available)
-                    if (audio) {
-                        try {
-                            audio.muted = false;
-                            audio.currentTime = 0;
-                            audio.play().catch(err => console.warn('Audio play failed:', err));
-                        } catch (e) {
-                            console.warn('Audio play error', e);
-                        }
-                    }
                 });
             });
         })();
