@@ -720,6 +720,9 @@
 
     </div>
 
+    <!-- Audio for letter section -->
+    <audio id="valentineAudio" src="valentine.mp3" preload="auto"></audio>
+
     <script>
         // --- JAVASCRIPT LOGIC ---
 
@@ -759,6 +762,19 @@
             
             // Show the selected page
             document.getElementById(pageId).classList.add('active');
+            
+            // Play or stop valentine audio depending on page
+            const valentineAudio = document.getElementById('valentineAudio');
+            if (valentineAudio) {
+                if (pageId === 'section-letter') {
+                    valentineAudio.currentTime = 0;
+                    // Attempt to play (may require user gesture in some browsers)
+                    valentineAudio.play().catch(() => {});
+                } else {
+                    valentineAudio.pause();
+                    valentineAudio.currentTime = 0;
+                }
+            }
         }
 
         function resetToEnvelope() {
@@ -773,6 +789,12 @@
             const envelope = document.getElementById('envelope');
             envelope.classList.remove('open');
             document.getElementById('section-envelope').style.display = 'block';
+            // Ensure letter audio is stopped when returning to envelope
+            const valentineAudio = document.getElementById('valentineAudio');
+            if (valentineAudio) {
+                valentineAudio.pause();
+                valentineAudio.currentTime = 0;
+            }
         }
     </script>
 
